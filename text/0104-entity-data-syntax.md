@@ -93,7 +93,7 @@ with this proposal, it could be represented compactly as follows:
 
 ```
 namespace PhotoApp {
-  entity User instance "alice" in [UserGroup::"alice_friends", UserGroup::"AVTeam"] {
+  instance User::"alice" in [UserGroup::"alice_friends", UserGroup::"AVTeam"] {
       userId: "897345789237492878",
       personInformation: {
           age: 25,
@@ -101,15 +101,13 @@ namespace PhotoApp {
       }
   };
 
-  entity Photo instance "vacationPhoto.jpg" {
+  instance Photo::"vacationPhoto.jpg" {
       private: false,
       account: Account::"ahmad"
   };
 
-  entity UserGroup instances [
-    "alice_friends",
-    "AVTeam"
-  ];
+  instance UserGroup::"alice_friends";
+  instance UserGroup::"AVTeam";
 }
 ```
 
@@ -154,12 +152,10 @@ namespace My::Namespace {
 
 ### Instance declarations
 
-Instance declarations use the `instance` keyword (or `instances`, see below) after an entity type written as `entity {entityType}`. This allows for a potential future where instances could be declared after a full entity type declaration.
-
-Instance declarations look largely like entity type declarations, but use literals rather than types as the values.
+Instance declarations use the `instance` keyword. Instance declarations look largely like entity type declarations, but use literals rather than types as the values.
 
 ```
-entity SomeType1 instance "entity_id_1" = {
+instance SomeType1::"entity_id_1" = {
   attribute: "value"
 };
 ```
@@ -167,68 +163,33 @@ entity SomeType1 instance "entity_id_1" = {
 Like entity type declarations, the `=` is optional, and instances without attributes can be declared without a record.
 
 ```
-entity SomeType1 instance "entity_id_2" {
+instance SomeType1::"entity_id_2" {
   attribute: "value"
 };
 
-entity SomeType1 instance "entity_id_3";
+instance SomeType1::"entity_id_3";
 ```
 
 Parents are defined like in entity type declarations, but use entity identifiers rather than types. Tags are similar.
 
 ```
-entity SomeType1 instance "entity_id_4" in [OtherType::"parent_entity_id"] {
+instance SomeType1::"entity_id_4" in [OtherType::"parent_entity_id"] {
   attribute: "value"
 } tags {
   tagName: "tagValue"
 };
 ```
 
-### Multiple instances in one declaration
-
-For convenience, multiple instances can be defined without repeating the entity type using the `instances` keyword followed by a list of instances. These instances follow the same syntax except that `=` is not permissible.
-
-```
-entity SomeType1 instances [
-  "entity_id_5" {
-    attribute: "value"
-  },
-  "entity_id_6" in [OtherType::"parent_entity_id"] {
-    attribute: "value"
-  } tags {
-    tagName: "tagValue"
-  },
-  "entity_id_7" {},
-  "entity_id_8"
-];
-```
-
-```
-// syntax error
-entity SomeType2 instances [
-  "entity_id_9" = {
-    attribute: "value"
-  }
-];
-```
-
 ### Grammar
 
 ```
-Entities := {NamespaceOrEntityDeclaration}
-NamespaceOrEntityDeclaration := Namespace | EntityDeclaration
-Namespace := 'namespace' Path '{' {EntityDeclaration} '}'
-EntityDeclaration := EntityInstanceDeclaration | EntityInstancesDeclaration
+Entities := {NamespaceOrEntityInstanceDeclaration}
+NamespaceOrEntityInstanceDeclaration := Namespace | EntityInstanceDeclaration
+Namespace := 'namespace' Path '{' {EntityInstanceDeclaration} '}'
 
-EntityInstanceDeclaration := 'entity' Path 'instance' EntityInstance ';'
-EntityInstance := Name ['in' EntityRefOrRefs] [['='] Record] ['tags' Tags]
-
-EntityInstancesDeclaration := 'entity' Path 'instances' '[' EntityInstanceNoEqualsList ']' ';'
-EntityInstanceNoEqualsList := EntityInstanceNoEquals {',' EntityInstanceNoEquals}
-EntityInstanceNoEquals := Name ['in' EntityRefOrRefs] [Record] ['tags' Tags]
+EntityInstanceDeclaration := 'instance' EntityRef ['in' EntityRefOrRefs] [['='] Record] ['tags' Tags]
 
 Path := IDENT {'::' IDENT}
-Name := STR
 EntityRefOrRefs := EntityRef | '[' [EntityRefOrRefs] ']'
 EntityRef := Path '::' STR
 
@@ -247,10 +208,11 @@ STR       := Fully-escaped Unicode surrounded by '"'s
 
 Not addressed in this proposal but open for future improvement:
 
-* Deduplication of values, e.g. similar to common types in schemas, the ability to define a record once and use it in multiple instances
 * Annotations
 * Intermixing of policies, instances, and/or schema in a single file
-  * Note the syntax leaves open the possibility for instances to be declared inline with a full entity type declaration
+* Deduplication
+  * The ability to define a record once and use it in multiple instances, similar to common types in schemas
+  * The ability to define large numbers of instances of the same type with less repetition
 
 ## Drawbacks
 
